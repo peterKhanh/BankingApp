@@ -1,12 +1,14 @@
 package peter.bankapp.service.impl;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import peter.bankapp.dto.AccountInfo;
 import peter.bankapp.dto.BankResponse;
+import peter.bankapp.dto.CreditDebitRequest;
 import peter.bankapp.dto.EmailDetails;
 import peter.bankapp.dto.EnquiryRequest;
 import peter.bankapp.dto.UserRequest;
@@ -109,6 +111,71 @@ public class UserServiceImpl implements UserService {
 	        User foundUser = userRepository.findByAccountNumber(request.getAccountNumber());
 	        return foundUser.getFirstName() + " " + foundUser.getLastName() + " " + foundUser.getOtherName();
 	    }
+
+	@Override
+	public BankResponse creditAccount(CreditDebitRequest request) {
+		boolean isAccountExist = userRepository.existsByAccountNumber(request.getAccountNumber()) ;
+		   if (!isAccountExist){
+	            return BankResponse.builder()
+	                    .responseCode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
+	                    .responseMessage(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE)
+	                    .accountInfo(null)
+	                    .build();
+	        }
+		   User userToCredit = userRepository.findByAccountNumber(request.getAccountNumber());
+	       userToCredit.setAccountBalance(userToCredit.getAccountBalance().add(request.getAmount()));
+	       userRepository.save(userToCredit);
+		   
+	       return BankResponse.builder()
+	                .responseCode(AccountUtils.ACCOUNT_CREDITED_SUCCESS)
+	                .responseMessage(AccountUtils.ACCOUNT_CREDITED_SUCCESS_MESSAGE)
+	                .accountInfo(AccountInfo.builder()
+	                        .accountName(userToCredit.getFirstName() + " " + userToCredit.getLastName() + " " + userToCredit.getOtherName())
+	                        .accountBalance(userToCredit.getAccountBalance())
+	                        .accountNumber(request.getAccountNumber())
+	                        .build())
+	                .build();
+	}
+
+	@Override
+	public BankResponse debitAccount(CreditDebitRequest request) {
+		   //check if the account exists
+        //check if the amount you intend to withdraw is not more than the current account balance
+        boolean isAccountExist = userRepository.existsByAccountNumber(request.getAccountNumber());
+        if (!isAccountExist){
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
+                    .responseMessage(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE)
+                    .accountInfo(null)
+                    .build();
+        }
+
+        User userToDebit = userRepository.findByAccountNumber(request.getAccountNumber());
+        BigInteger availableBalance =userToDebit.getAccountBalance().toBigInteger();
+        BigInteger debitAmount = request.getAmount().toBigInteger();
+        if ( availableBalance.intValue() < debitAmount.intValue()){
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.INSUFFICIENT_BALANCE_CODE)
+                    .responseMessage(AccountUtils.INSUFFICIENT_BALANCE_MESSAGE)
+                    .accountInfo(null)
+                    .build();
+        }
+        else {
+            userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(request.getAmount()));
+            userRepository.save(userToDebit);
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.ACCOUNT_DEBITED_SUCCESS)
+                    .responseMessage(AccountUtils.ACCOUNT_DEBITED_MESSAGE)
+                    .accountInfo(AccountInfo.builder()
+                            .accountNumber(request.getAccountNumber())
+                            .accountName(userToDebit.getFirstName() + " " + userToDebit.getLastName() + " " + userToDebit.getOtherName())
+                            .accountBalance(userToDebit.getAccountBalance())
+                            .build())
+                    .build();
+        }
+
+    }
+	
 	
 
 }
