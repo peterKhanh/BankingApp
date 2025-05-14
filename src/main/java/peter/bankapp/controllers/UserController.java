@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import peter.bankapp.dto.BankResponse;
+import peter.bankapp.dto.EnquiryRequest;
 import peter.bankapp.dto.UserRequest;
 import peter.bankapp.service.UserService;
 
@@ -30,6 +31,14 @@ public class UserController {
 		return userService.createAccount(userRequest);
 	}
 	
-	
+	 @GetMapping("/balanceEnquiry")
+	    public BankResponse balanceEnquiry(@RequestBody EnquiryRequest request){
+	        return userService.balanceEnquiry(request);
+	    }
+
+	    @GetMapping("/nameEnquiry")
+	    public String nameEnquiry(@RequestBody EnquiryRequest request){
+	        return userService.nameEnquiry(request);
+	    }
 	
 }
