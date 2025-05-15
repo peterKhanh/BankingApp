@@ -11,6 +11,7 @@ import peter.bankapp.dto.BankResponse;
 import peter.bankapp.dto.CreditDebitRequest;
 import peter.bankapp.dto.EmailDetails;
 import peter.bankapp.dto.EnquiryRequest;
+import peter.bankapp.dto.TransferRequest;
 import peter.bankapp.dto.UserRequest;
 import peter.bankapp.entity.User;
 import peter.bankapp.repository.UserRepository;
@@ -175,6 +176,58 @@ public class UserServiceImpl implements UserService {
         }
 
     }
+
+	@Override
+	public BankResponse transfer(TransferRequest request) {
+//        boolean isSourceAccountExist = userRepository.existsByAccountNumber(request.getSourceAccountNumber());
+        boolean isDestinationAccountExist = userRepository.existsByAccountNumber(request.getDestinationAccountNumber());
+//
+//        if (!isSourceAccountExist){
+//            return BankResponse.builder()
+//                    .responseCode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
+//                    .responseMessage(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE)
+//                    .accountInfo(null)
+//                    .build();
+//        }
+
+        if (!isDestinationAccountExist){
+    		System.out.println("Tai khoan nhan khong ton tai");
+
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
+                    .responseMessage(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE)
+                    .accountInfo(null)
+                    .build();
+        }
+        
+        User sourceAccountUser = userRepository.findByAccountNumber(request.getSourceAccountNumber());
+        if (request.getAmount().compareTo(sourceAccountUser.getAccountBalance()) > 0) {
+    		System.out.println("Khong du de chuyen");
+
+        	 return BankResponse.builder()
+                     .responseCode(AccountUtils.INSUFFICIENT_BALANCE_CODE)
+                     .responseMessage(AccountUtils.INSUFFICIENT_BALANCE_MESSAGE)
+                     .accountInfo(null)
+                     .build();
+        }
+        
+        sourceAccountUser.setAccountBalance(sourceAccountUser.getAccountBalance().subtract(request.getAmount()));
+        userRepository.save(sourceAccountUser);
+        //  Can them Sent mail
+        
+        /// 
+        User destinationAccountUser = userRepository.findByAccountNumber(request.getDestinationAccountNumber());
+        destinationAccountUser.setAccountBalance(destinationAccountUser.getAccountBalance().add(request.getAmount()));
+        userRepository.save(destinationAccountUser);
+		System.out.println("CK thanh cong");
+
+        return BankResponse.builder()
+        		
+                .responseCode(AccountUtils.TRANSFER_SUCCESSFUL_CODE)
+                .responseMessage(AccountUtils.TRANSFER_SUCCESSFUL_MESSAGE)
+                .accountInfo(null)
+                .build();
+	}
 	
 	
 

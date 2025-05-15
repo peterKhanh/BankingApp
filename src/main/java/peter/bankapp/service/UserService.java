@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import peter.bankapp.dto.BankResponse;
 import peter.bankapp.dto.CreditDebitRequest;
 import peter.bankapp.dto.EnquiryRequest;
+import peter.bankapp.dto.TransferRequest;
 import peter.bankapp.dto.UserRequest;
 @Service
 public interface UserService {
@@ -13,4 +14,5 @@ public interface UserService {
     String nameEnquiry(EnquiryRequest request);
     BankResponse creditAccount(CreditDebitRequest request);
     BankResponse debitAccount(CreditDebitRequest request);
-}
+    BankResponse transfer(TransferRequest request);
+    }

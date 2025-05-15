@@ -11,7 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CreditDebitRequest {
-	 private String accountNumber;
-	 private BigDecimal amount;
+public class TransferRequest {
+	private String sourceAccountNumber;
+    private String destinationAccountNumber;
+    private BigDecimal amount;
 }
