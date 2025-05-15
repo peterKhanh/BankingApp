@@ -11,11 +11,13 @@ import peter.bankapp.dto.BankResponse;
 import peter.bankapp.dto.CreditDebitRequest;
 import peter.bankapp.dto.EmailDetails;
 import peter.bankapp.dto.EnquiryRequest;
+import peter.bankapp.dto.TransactionDto;
 import peter.bankapp.dto.TransferRequest;
 import peter.bankapp.dto.UserRequest;
 import peter.bankapp.entity.User;
 import peter.bankapp.repository.UserRepository;
 import peter.bankapp.service.EmailService;
+import peter.bankapp.service.TransactionService;
 import peter.bankapp.service.UserService;
 import peter.bankapp.ultil.AccountUtils;
 
@@ -25,6 +27,8 @@ public class UserServiceImpl implements UserService {
 	UserRepository userRepository;
 	@Autowired
 	EmailService emailService;
+	@Autowired
+	TransactionService transactionService;
 
 	@Override
 	public BankResponse createAccount(UserRequest userRequest) {
@@ -126,7 +130,17 @@ public class UserServiceImpl implements UserService {
 		   User userToCredit = userRepository.findByAccountNumber(request.getAccountNumber());
 	       userToCredit.setAccountBalance(userToCredit.getAccountBalance().add(request.getAmount()));
 	       userRepository.save(userToCredit);
-		   
+	       
+	       
+	       // Save Transaction
+	       TransactionDto transactionDto = TransactionDto.builder()
+	    		   .accountNumber(userToCredit.getAccountNumber())
+	    		   .transactionType("CREDIT")
+	    		   .amount(request.getAmount())
+	    		   .build();
+	       transactionService.saveTransaction(transactionDto);
+		   //
+	       
 	       return BankResponse.builder()
 	                .responseCode(AccountUtils.ACCOUNT_CREDITED_SUCCESS)
 	                .responseMessage(AccountUtils.ACCOUNT_CREDITED_SUCCESS_MESSAGE)
@@ -164,6 +178,16 @@ public class UserServiceImpl implements UserService {
         else {
             userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(request.getAmount()));
             userRepository.save(userToDebit);
+            
+            // Save Transaction
+ 	       TransactionDto transactionDto = TransactionDto.builder()
+ 	    		   .accountNumber(userToDebit.getAccountNumber())
+ 	    		   .transactionType("DEBIT")
+ 	    		   .amount(request.getAmount())
+ 	    		   .build();
+ 	       transactionService.saveTransaction(transactionDto);
+ 		   //
+            
             return BankResponse.builder()
                     .responseCode(AccountUtils.ACCOUNT_DEBITED_SUCCESS)
                     .responseMessage(AccountUtils.ACCOUNT_DEBITED_MESSAGE)
@@ -174,6 +198,8 @@ public class UserServiceImpl implements UserService {
                             .build())
                     .build();
         }
+        
+        
 
     }
 
@@ -219,7 +245,16 @@ public class UserServiceImpl implements UserService {
         User destinationAccountUser = userRepository.findByAccountNumber(request.getDestinationAccountNumber());
         destinationAccountUser.setAccountBalance(destinationAccountUser.getAccountBalance().add(request.getAmount()));
         userRepository.save(destinationAccountUser);
-		System.out.println("CK thanh cong");
+
+        // Save Transaction
+	       TransactionDto transactionDto = TransactionDto.builder()
+	    		   .accountNumber(destinationAccountUser.getAccountNumber())
+	    		   .transactionType("TRANSFER")
+	    		   .amount(request.getAmount())
+	    		   .build();
+	       transactionService.saveTransaction(transactionDto);
+		   //
+        System.out.println("CK thanh cong");
 
         return BankResponse.builder()
         		

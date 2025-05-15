@@ -43,8 +43,7 @@ public class UserController {
 	        return userService.nameEnquiry(request);
 	    }
 	
-	    
-		@PostMapping("/credit")
+	    @PostMapping("/credit")
 		public BankResponse creditAccount(@RequestBody CreditDebitRequest request ){
 			
 			return userService.creditAccount(request);
