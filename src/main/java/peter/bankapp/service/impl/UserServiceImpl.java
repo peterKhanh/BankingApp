@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import peter.bankapp.dto.AccountInfo;
 import peter.bankapp.dto.BankResponse;
 import peter.bankapp.dto.CreditDebitRequest;
-import peter.bankapp.dto.EmailDetails;
 import peter.bankapp.dto.EnquiryRequest;
 import peter.bankapp.dto.TransactionDto;
 import peter.bankapp.dto.TransferRequest;

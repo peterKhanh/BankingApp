@@ -1,6 +1,11 @@
 package peter.bankapp.controllers;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,6 +18,13 @@ import peter.bankapp.dto.EnquiryRequest;
 import peter.bankapp.dto.TransferRequest;
 import peter.bankapp.dto.UserRequest;
 import peter.bankapp.service.UserService;
+import peter.bankapp.ultil.PDFGenerator;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import peter.bankapp.entity.User;
+import peter.bankapp.repository.UserRepository;
 
 @RestController
 @RequestMapping("/api/user")
@@ -20,14 +32,40 @@ public class UserController {
 
     @Autowired
     UserService userService;
-    
-	@GetMapping("/users")
-	public String getAllPost(){
-		
-		return "kkkk";
-	}
+	@Autowired
+	UserRepository userRepository;
+
+	   /**
+     * Get all user.
+     *
+     * @return the ResponseEntity with status 200 (OK) and with body of the list of user
+     */
+    @GetMapping("/list")
+    public List<User> getAllUser() {
+        return userRepository.findAll();
+    }
+ 
 	
-	@PostMapping
+    @GetMapping(value = "/pdf",produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<InputStreamResource> customerReport() throws IOException {
+	        List<User> user = userRepository.findAll();
+	        
+
+	        ByteArrayInputStream bis = PDFGenerator.customerPDFReport(user);
+
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.add("Content-Disposition", "inline; filename=customers.pdf");
+
+	        return ResponseEntity
+	                .ok()
+	                .headers(headers)
+	                .contentType(MediaType.APPLICATION_PDF)
+	                .body(new InputStreamResource(bis));
+	    }
+		
+	
+	
+	@PostMapping("/createAccount")
 	public BankResponse createAccount(@RequestBody UserRequest userRequest ){
 		
 		return userService.createAccount(userRequest);
